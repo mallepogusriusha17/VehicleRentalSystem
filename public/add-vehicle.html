@@ -1,0 +1,143 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Vehicle | Usha DriveEase</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+    <h2>🚘 Usha DriveEase</h2>
+    <div>
+        <a href="index.html">Home</a>
+        <a href="add-vehicle.html">Add Vehicle</a>
+        <a href="vehicle-list.html">Vehicle List</a>
+        <a href="find-vehicle.html">Find Vehicle</a>
+        <a href="update-vehicle.html">Update Vehicle</a>
+        <a href="delete-vehicle.html">Delete Vehicle</a>
+    </div>
+</nav>
+
+<main class="container">
+    <p class="eyebrow">VEHICLE MANAGEMENT</p>
+    <h1>Add New Vehicle</h1>
+    <p>Enter the vehicle information below.</p>
+
+    <form id="addVehicleForm" class="vehicle-form">
+
+        <label for="vehicle_number">Vehicle Number</label>
+        <input
+            type="text"
+            id="vehicle_number"
+            name="vehicle_number"
+            placeholder="e.g. AP21AB1234"
+            required
+        >
+
+        <label for="vehicle_time">Vehicle Time</label>
+        <input
+            type="text"
+            id="vehicle_time"
+            name="vehicle_time"
+            placeholder="e.g. 9 AM - 6 PM"
+            required
+        >
+
+        <label for="model">Vehicle Model</label>
+        <input
+            type="text"
+            id="model"
+            name="model"
+            placeholder="e.g. Maruti Swift"
+            required
+        >
+
+        <label for="rent_per_day">Rent Per Day (₹)</label>
+        <input
+            type="number"
+            id="rent_per_day"
+            name="rent_per_day"
+            placeholder="Enter daily rent"
+            min="1"
+            required
+        >
+
+        <label for="status">Vehicle Status</label>
+        <select id="status" name="status" required>
+            <option value="Available">Available</option>
+            <option value="Rented">Rented</option>
+            <option value="Maintenance">Maintenance</option>
+        </select>
+
+        <button type="submit">Save Vehicle</button>
+        <p id="formMessage" role="status"></p>
+
+    </form>
+</main>
+
+<footer>
+    © 2026 Usha DriveEase | Vehicle Rental System
+</footer>
+
+<script>
+const addForm = document.getElementById("addVehicleForm");
+const formMessage = document.getElementById("formMessage");
+
+addForm.addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    const saveButton = addForm.querySelector("button[type='submit']");
+
+    saveButton.disabled = true;
+    saveButton.textContent = "Saving...";
+    formMessage.textContent = "";
+
+    // Important: backend expects vehicle_num
+    const vehicle = {
+        vehicle_num: document.getElementById("vehicle_number").value.trim(),
+        vehicle_time: document.getElementById("vehicle_time").value.trim(),
+        model: document.getElementById("model").value.trim(),
+        rent_per_day: Number(
+            document.getElementById("rent_per_day").value
+        ),
+        status: document.getElementById("status").value
+    };
+
+    try {
+        const response = await fetch("/api/vehicles", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(vehicle)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                result.message ||
+                result.error ||
+                "Unable to save vehicle"
+            );
+        }
+
+        formMessage.textContent = "Vehicle added successfully!";
+        addForm.reset();
+
+    } catch (error) {
+        formMessage.textContent =
+            error.message || "Error saving vehicle.";
+    } finally {
+        saveButton.disabled = false;
+        saveButton.textContent = "Save Vehicle";
+    }
+});
+</script>
+
+</body>
+</html>

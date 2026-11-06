@@ -1,0 +1,10 @@
+```json
+{
+    "name": "vehicle-rental-system",
+    "version": "1.0.0",
+    "description": "Vehicle Rental Management System",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js"
+    }
+}

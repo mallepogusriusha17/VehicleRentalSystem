@@ -1,0 +1,153 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle List |  usha DriveEase</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+    <h2>🚘usha DriveEase</h2>
+    <div>
+        <a href="index.html">Home</a>
+        <a href="add-vehicle.html">Add Vehicle</a>
+        <a href="vehicle-list.html">Vehicle List</a>
+        <a href="find-vehicle.html">Find Vehicle</a>
+        <a href="update-vehicle.html">Update Vehicle</a>
+        <a href="delete-vehicle.html">Delete Vehicle</a>
+    </div>
+</nav>
+
+<main class="container">
+    <p class="eyebrow">VEHICLE MANAGEMENT</p>
+    <h1>Vehicle List</h1>
+    <p>View and manage all registered vehicles.</p>
+
+    <h2 style="margin-top:20px;">All Vehicles</h2>
+    <a href="add-vehicle.html" class="btn">+ Add Vehicle</a>
+
+    <p id="listMessage">Loading vehicles...</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Vehicle ID</th>
+                <th>Vehicle Number</th>
+                <th>Vehicle Time</th>
+                <th>Model</th>
+                <th>Rent Per Day</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="vehicleTableBody"></tbody>
+    </table>
+</main>
+
+<footer>
+    © 2026  usha DriveEase | Vehicle Rental System
+</footer>
+
+<script>
+async function loadVehicleList() {
+    const tbody = document.getElementById("vehicleTableBody");
+    const message = document.getElementById("listMessage");
+
+    try {
+        const response = await fetch("/api/vehicles");
+
+        if (!response.ok) {
+            throw new Error("Unable to fetch vehicles");
+        }
+
+        const vehicles = await response.json();
+        tbody.innerHTML = "";
+
+        if (!Array.isArray(vehicles) || vehicles.length === 0) {
+            message.textContent = "No vehicles found. Please add a vehicle.";
+            return;
+        }
+
+        message.textContent = vehicles.length + " vehicle(s) found.";
+
+        vehicles.forEach(vehicle => {
+            const row = document.createElement("tr");
+
+            const vehicleId = vehicle.vehicle_id ?? vehicle.id ?? "";
+            const vehicleNumber = vehicle.vehicle_num ?? vehicle.vehicle_number ?? "";
+
+            const values = [
+                vehicleId,
+                vehicleNumber || "Not provided",
+                vehicle.vehicle_time ?? "",
+                vehicle.model ?? vehicle.vehicle_model ?? "",
+                "₹" + Number(vehicle.rent_per_day ?? 0).toFixed(2),
+                vehicle.status ?? ""
+            ];
+
+            values.forEach(value => {
+                const cell = document.createElement("td");
+                cell.textContent = value;
+                row.appendChild(cell);
+            });
+
+            const actions = document.createElement("td");
+
+            const updateLink = document.createElement("a");
+            updateLink.textContent = "Update";
+            updateLink.href = "update-vehicle.html?id=" +
+                encodeURIComponent(vehicleId);
+            updateLink.style.marginRight = "8px";
+
+            const deleteButton = document.createElement("button");
+            deleteButton.textContent = "Delete";
+            deleteButton.type = "button";
+
+            deleteButton.addEventListener("click", async () => {
+                if (!confirm("Are you sure you want to delete this vehicle?")) {
+                    return;
+                }
+
+                deleteButton.disabled = true;
+                deleteButton.textContent = "Deleting...";
+
+                try {
+                    const result = await fetch(
+                        "/api/vehicles/" + encodeURIComponent(vehicleId),
+                        { method: "DELETE" }
+                    );
+
+                    if (!result.ok) {
+                        throw new Error("Delete failed");
+                    }
+
+                    message.textContent = "Vehicle deleted successfully!";
+                    await loadVehicleList();
+                } catch (error) {
+                    alert("Unable to delete vehicle. Please try again.");
+                    deleteButton.disabled = false;
+                    deleteButton.textContent = "Delete";
+                }
+            });
+
+            actions.appendChild(updateLink);
+            actions.appendChild(deleteButton);
+            row.appendChild(actions);
+            tbody.appendChild(row);
+        });
+
+    } catch (error) {
+        message.textContent =
+            "Unable to load vehicles. Please check that the server is running.";
+        console.error(error);
+    }
+}
+
+loadVehicleList();
+</script>
+
+</body>
+</html>

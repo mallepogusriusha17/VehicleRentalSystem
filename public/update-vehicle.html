@@ -1,0 +1,280 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Vehicle | Vehicle Rental System</title>
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        .update-card {
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 28px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 5px 20px #6f2da820;
+        }
+
+        .update-card h1 {
+            text-align: center;
+            color: #7629b5;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #777;
+            margin-bottom: 24px;
+        }
+
+        .update-card label {
+            display: block;
+            margin: 14px 0 6px;
+            color: #542477;
+            font-weight: bold;
+        }
+
+        .update-card input,
+        .update-card select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d9c3e8;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 15px;
+        }
+
+        .update-btn {
+            width: 100%;
+            padding: 13px;
+            margin-top: 18px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #7629b5, #d946a6);
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .update-btn:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        #message {
+            text-align: center;
+            margin-top: 16px;
+            font-weight: bold;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 18px;
+            color: #7629b5;
+            text-decoration: none;
+        }
+
+        @media (max-width: 600px) {
+            .update-card {
+                margin: 20px 12px;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <div class="logo">🚗 Vehicle Rental System</div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="add-vehicle.html">Add Vehicle</a>
+            <a href="vehicle-list.html">Vehicle List</a>
+            <a href="find-vehicle.html">Find Vehicle</a>
+            <a href="update-vehicle.html">Update Vehicle</a>
+            <a href="delete-vehicle.html">Delete Vehicle</a>
+        </div>
+    </nav>
+
+    <main class="update-card">
+        <h1>Update Vehicle</h1>
+        <p class="subtitle">Load and edit your vehicle details.</p>
+
+        <form id="updateForm">
+            <label for="vehicle_id">Vehicle ID</label>
+            <input
+                type="number"
+                id="vehicle_id"
+                min="1"
+                placeholder="Enter vehicle ID"
+                required
+            >
+
+            <button type="button" id="loadBtn" class="update-btn">
+                Load Vehicle Details
+            </button>
+
+            <div id="vehicleFields" hidden>
+                <label for="vehicle_number">Vehicle Number</label>
+                <input type="text" id="vehicle_number" required>
+
+                <label for="vehicle_time">Vehicle Time</label>
+                <input type="text" id="vehicle_time" required>
+
+                <label for="model">Vehicle Model</label>
+                <input type="text" id="model" required>
+
+                <label for="rent_per_day">Rent Per Day (₹)</label>
+                <input type="number" id="rent_per_day"
+                       min="0" step="0.01" required>
+
+                <label for="status">Status</label>
+                <select id="status" required>
+                    <option value="">Select Status</option>
+                    <option value="Available">Available</option>
+                    <option value="Rented">Rented</option>
+                    <option value="Maintenance">Maintenance</option>
+                </select>
+
+                <button type="submit" id="saveBtn" class="update-btn">
+                    Update Vehicle
+                </button>
+            </div>
+        </form>
+
+        <p id="message" role="status"></p>
+
+        <a class="back-link" href="vehicle-list.html">
+            ← Back to Vehicle List
+        </a>
+    </main>
+
+    <script>
+        const idInput = document.getElementById("vehicle_id");
+        const fields = document.getElementById("vehicleFields");
+        const message = document.getElementById("message");
+        const form = document.getElementById("updateForm");
+        const loadBtn = document.getElementById("loadBtn");
+        const saveBtn = document.getElementById("saveBtn");
+
+        function showMessage(text, success = false) {
+            message.textContent = text;
+            message.style.color = success ? "#218838" : "#c0392b";
+        }
+
+        async function loadVehicle() {
+            const id = idInput.value.trim();
+
+            if (!id || Number(id) < 1) {
+                showMessage("Please enter a valid Vehicle ID.");
+                return;
+            }
+
+            fields.hidden = true;
+            loadBtn.disabled = true;
+            loadBtn.textContent = "Loading...";
+            showMessage("Loading vehicle details...", true);
+
+            try {
+                const response = await fetch(
+                    `/api/vehicles/${encodeURIComponent(id)}`
+                );
+                const vehicle = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(vehicle.message || "Vehicle not found.");
+                }
+
+                document.getElementById("vehicle_number").value =
+                    vehicle.vehicle_num ?? "";
+
+                document.getElementById("vehicle_time").value =
+                    vehicle.vehicle_time ?? "";
+
+                document.getElementById("model").value =
+                    vehicle.model ?? "";
+
+                document.getElementById("rent_per_day").value =
+                    vehicle.rent_per_day ?? "";
+
+                document.getElementById("status").value =
+                    vehicle.status ?? "";
+
+                fields.hidden = false;
+                showMessage("Vehicle details loaded successfully.", true);
+
+            } catch (error) {
+                showMessage(error.message || "Unable to load vehicle.");
+            } finally {
+                loadBtn.disabled = false;
+                loadBtn.textContent = "Load Vehicle Details";
+            }
+        }
+
+        loadBtn.addEventListener("click", loadVehicle);
+
+        form.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const id = idInput.value.trim();
+
+            const data = {
+                vehicle_num: document.getElementById("vehicle_number").value.trim(),
+                vehicle_time: document.getElementById("vehicle_time").value.trim(),
+                model: document.getElementById("model").value.trim(),
+                rent_per_day: document.getElementById("rent_per_day").value,
+                status: document.getElementById("status").value
+            };
+
+            if (!confirm("Are you sure you want to update this vehicle?")) {
+                return;
+            }
+
+            saveBtn.disabled = true;
+            saveBtn.textContent = "Updating...";
+            showMessage("Updating vehicle...", true);
+
+            try {
+                const response = await fetch(
+                    `/api/vehicles/${encodeURIComponent(id)}`,
+                    {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(data)
+                    }
+                );
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || "Update failed.");
+                }
+
+                showMessage("Vehicle updated successfully!", true);
+
+            } catch (error) {
+                showMessage(error.message || "Unable to update vehicle.");
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = "Update Vehicle";
+            }
+        });
+
+        const params = new URLSearchParams(window.location.search);
+        const urlId = params.get("id");
+
+        if (urlId) {
+            idInput.value = urlId;
+            loadVehicle();
+        }
+    </script>
+
+</body>
+</html>

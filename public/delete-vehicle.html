@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Vehicle |usha DriveEase</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav>
+        <h2>🚘usha DriveEase</h2>
+        <div>
+            <a href="index.html">Home</a>
+            <a href="add-vehicle.html">Add Vehicle</a>
+            <a href="vehicle-list.html">Vehicle List</a>
+            <a href="find-vehicle.html">Find Vehicle</a>
+            <a href="update-vehicle.html">Update Vehicle</a>
+            <a href="delete-vehicle.html">Delete Vehicle</a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <p class="eyebrow">VEHICLE MANAGEMENT</p>
+        <h1>Delete Vehicle</h1>
+        <p>Enter the vehicle ID you want to delete.</p>
+
+        <form id="deleteForm" class="vehicle-form">
+            <label for="vehicleId">Vehicle ID</label>
+            <input type="number" id="vehicleId" min="1" required placeholder="Enter vehicle ID">
+            <button type="submit">Delete Vehicle</button>
+        </form>
+
+        <p id="deleteMessage"></p>
+    </main>
+
+    <footer>© 2026 usha DriveEase | Vehicle Rental System</footer>
+
+    <script>
+        document.getElementById("deleteForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            const id = document.getElementById("vehicleId").value;
+            const message = document.getElementById("deleteMessage");
+
+            if (!confirm("Are you sure you want to delete vehicle ID " + id + "?")) return;
+
+            message.textContent = "Deleting vehicle...";
+
+            try {
+                const response = await fetch("/api/vehicles/" + encodeURIComponent(id), {
+                    method: "DELETE"
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) throw new Error(result.message || "Unable to delete vehicle.");
+
+                message.textContent = "Vehicle deleted successfully!";
+                document.getElementById("deleteForm").reset();
+            } catch (error) {
+                message.textContent = error.message || "Unable to delete vehicle.";
+            }
+        });
+    </script>
+</body>
+</html>

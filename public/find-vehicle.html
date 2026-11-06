@@ -1,0 +1,79 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Vehicle | DriveEase</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav>
+        <h2>🚘usha DriveEase</h2>
+        <div>
+            <a href="index.html">Home</a>
+            <a href="add-vehicle.html">Add Vehicle</a>
+            <a href="vehicle-list.html">Vehicle List</a>
+            <a href="find-vehicle.html">Find Vehicle</a>
+            <a href="update-vehicle.html">Update Vehicle</a>
+            <a href="delete-vehicle.html">Delete Vehicle</a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <p class="eyebrow">VEHICLE MANAGEMENT</p>
+        <h1>Find a Vehicle</h1>
+        <p>Search using the Vehicle ID.</p>
+
+        <form id="findForm" class="vehicle-form">
+            <label for="vehicleId">Vehicle ID</label>
+            <input type="number" id="vehicleId" min="1" required placeholder="Enter vehicle ID">
+            <button type="submit">Find Vehicle</button>
+        </form>
+
+        <p id="findMessage"></p>
+        <div id="vehicleResult" class="vehicle-card"></div>
+    </main>
+
+    <footer>© 2026 usha DriveEase | Vehicle Rental System</footer>
+
+    <script>
+        document.getElementById("findForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            const id = document.getElementById("vehicleId").value;
+            const message = document.getElementById("findMessage");
+            const resultBox = document.getElementById("vehicleResult");
+
+            message.textContent = "Searching...";
+            resultBox.replaceChildren();
+
+            try {
+                const response = await fetch("/api/vehicles/" + encodeURIComponent(id));
+                const vehicle = await response.json();
+
+                if (!response.ok) throw new Error(vehicle.message || "Vehicle not found");
+
+                message.textContent = "Vehicle found successfully!";
+
+                const details = [
+                    ["Vehicle ID", vehicle.vehicle_id],
+                    ["Vehicle Number", vehicle.vehicle_num],
+                    ["Vehicle Time", vehicle.vehicle_time],
+                    ["Model", vehicle.model],
+                    ["Rent Per Day", "₹" + vehicle.rent_per_day],
+                    ["Status", vehicle.status]
+                ];
+
+                details.forEach(function(item) {
+                    const p = document.createElement("p");
+                    p.textContent = item[0] + ": " + item[1];
+                    resultBox.appendChild(p);
+                });
+            } catch (error) {
+                message.textContent = error.message || "Unable to find vehicle.";
+            }
+        });
+    </script>
+</body>
+</html>
